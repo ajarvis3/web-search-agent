@@ -132,7 +132,7 @@ class TestSearchError:
 class TestRunAgent:
     def test_run_agent_returns_output(self):
         """run_agent should return the last message's content from the agent result."""
-        import agent as agent_module
+        from src import agent as agent_module
 
         last_msg = MagicMock()
         last_msg.content = "42"
@@ -148,7 +148,7 @@ class TestRunAgent:
         )
 
     def test_run_agent_strips_query(self):
-        import agent as agent_module
+        from src import agent as agent_module
 
         last_msg = MagicMock()
         last_msg.content = "answer"
@@ -163,13 +163,13 @@ class TestRunAgent:
         )
 
     def test_run_agent_raises_on_empty_query(self):
-        import agent as agent_module
+        from src import agent as agent_module
 
         with pytest.raises(ValueError, match="empty"):
             agent_module.run_agent("")
 
     def test_run_agent_raises_on_whitespace_query(self):
-        import agent as agent_module
+        from src import agent as agent_module
 
         with pytest.raises(ValueError, match="empty"):
             agent_module.run_agent("   ")

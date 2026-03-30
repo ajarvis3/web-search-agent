@@ -112,7 +112,10 @@ pytest
 | Variable       | Default           | Description                        |
 |----------------|-------------------|------------------------------------|
 | `GOOGLE_API_KEY` | *(required)*    | Google Gemini API key              |
-| `GEMINI_MODEL` | `gemini-2.0-flash`| Gemini model identifier            |
+| `GEMINI_MODEL` | `gemini-2.5-flash`| Gemini model identifier            |
+| `HUGGINGFACE_EMBEDDING_MODEL` | `sentence-transformers/all-mpnet-base-v2` | Hugging Face sentence-transformers model for embeddings |
+| `CHROMA_PERSIST_DIR` | `chroma` | Local directory for Chroma files |
+| `CHROMA_COLLECTION` | `web_search_agent` | Chroma collection name |
 | `FLASK_HOST`   | `0.0.0.0`         | Host address for the Flask server  |
 | `FLASK_PORT`   | `5000`            | Port for the Flask server          |
 | `FLASK_DEBUG`  | `false`           | Enable Flask debug mode            |

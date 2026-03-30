@@ -17,7 +17,9 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 
-from agent import run_agent
+from src.agent import run_agent
+from src.agent import start_background_indexing
+from src.routes import routes
 
 load_dotenv()
 
@@ -25,33 +27,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.register_blueprint(routes)
 
 
-@app.route("/health", methods=["GET"])
-def health():
-    """Simple liveness check."""
-    return jsonify({"status": "ok"}), 200
+@app.before_serving
+def _start_optional_indexing():
+    """Trigger optional background Wikipedia indexing on first request.
 
-
-@app.route("/search", methods=["POST"])
-def search():
-    """Accept a JSON body with a *query* field and return the agent answer."""
-    data = request.get_json(silent=True)
-    if not data or "query" not in data:
-        return jsonify({"error": "Request body must be JSON with a 'query' field."}), 400
-
-    query = data["query"]
-    if not isinstance(query, str) or not query.strip():
-        return jsonify({"error": "'query' must be a non-empty string."}), 400
-
-    query = query.strip()
+    Controlled by the INDEX_WIKI_ON_STARTUP env var. Non-blocking.
+    """
     try:
-        answer = run_agent(query)
-        return jsonify({"answer": answer}), 200
-    except Exception as exc:
-        logger.exception("Agent error for query %r", query)
-        return jsonify({"error": str(exc)}), 500
-
+        start_background_indexing()
+    except Exception:
+        logger.exception("Failed to start background indexing from Flask app")
 
 if __name__ == "__main__":
     host = os.getenv("FLASK_HOST", "0.0.0.0")

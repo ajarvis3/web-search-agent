@@ -1,6 +1,9 @@
-flask>=3.1.0
-langchain>=0.3.21
-langchain-google-genai>=2.1.2
+Flask==3.0.0
+langchain==1.2.13
+langchain-chroma>=0.2.6
+langchain-google-genai==4.2.1
 langchain-community>=0.3.27
 duckduckgo-search>=7.5.3
-python-dotenv>=1.1.0
+python-dotenv==1.0.0
+tavily-python==0.7.23
+sentence-transformers>=2.2.2
