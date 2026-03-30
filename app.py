@@ -17,7 +17,6 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 
-from src.agent import run_agent
 from src.agent import start_background_indexing
 from src.routes import routes
 
@@ -30,12 +29,7 @@ app = Flask(__name__)
 app.register_blueprint(routes)
 
 
-@app.before_serving
-def _start_optional_indexing():
-    """Trigger optional background Wikipedia indexing on first request.
-
-    Controlled by the INDEX_WIKI_ON_STARTUP env var. Non-blocking.
-    """
+with app.app_context():
     try:
         start_background_indexing()
     except Exception:

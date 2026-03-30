@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 
 routes = Blueprint("routes", __name__)
 
-@app.route("/health", methods=["GET"])
+@routes.route("/health", methods=["GET"])
 def health():
     """Simple liveness check."""
     return jsonify({"status": "ok"}), 200
 
-@app.route("/search", methods=["POST"])
+@routes.route("/search", methods=["POST"])
 def search():
     """Accept a JSON body with a *query* field and return the agent answer."""
     data = request.get_json(silent=True)
