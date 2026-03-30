@@ -1,0 +1,6 @@
+flask>=3.1.0
+langchain>=0.3.21
+langchain-google-genai>=2.1.2
+langchain-community>=0.3.27
+duckduckgo-search>=7.5.3
+python-dotenv>=1.1.0
