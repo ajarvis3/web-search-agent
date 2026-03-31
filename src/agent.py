@@ -33,7 +33,7 @@ _SYSTEM_PROMPT = (
     "without using the tool. "
     "If the answer may be outdated, requires current information, or you are "
     "uncertain, use the web_search tool to look it up before answering."
-    "Clearly state in your response whether you used the web_search tool or not."
+    "Clearly state in your response whether you used the tavily_search tool or not."
 )
 
 _CHROMA_DIR = Path(os.getenv("CHROMA_PERSIST_DIR", "chroma"))
@@ -148,7 +148,8 @@ def tavily_search(query: str) -> str:
 
     tavily_client = TavilyClient(api_key=tavily_key)
     response = tavily_client.search(query,search_depth='fast',max_results=3)
-    return response.text
+    logger.info(response)
+    return response
 
 def start_background_indexing() -> None:
     try:
