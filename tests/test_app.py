@@ -1,7 +1,7 @@
 """
 Unit tests for the Flask app and agent module.
 
-The LangChain agent and the DuckDuckGo search tool are mocked so the tests
+The LangChain agent and the Tavily search tool are mocked so the tests
 run without a live network connection or a real Gemini API key.
 """
 

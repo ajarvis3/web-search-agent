@@ -1,7 +1,7 @@
 """
 Web-search agent backed by Google Gemini and LangChain.
 
-The agent is given a DuckDuckGo search tool.  The Gemini LLM decides
+The agent is given a web-search tool (Tavily). The Gemini LLM decides
 for each query whether its built-in knowledge is sufficient or whether
 it needs to call the search tool to find up-to-date information.
 """
@@ -13,14 +13,15 @@ from typing import Any
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_chroma import Chroma
-from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import WikipediaLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.tools import tool
 from typing import List
 import threading
 import logging
+from tavily import TavilyClient
 
 load_dotenv()
 
@@ -112,28 +113,42 @@ def _maybe_background_index() -> None:
         logger.info("Chroma wiki index marker present, skipping startup indexing.")
         return
 
-    pages = ["George Washington","Abraham Lincoln","Machine learning"]
+    pages = ["George Washington", "Abraham Lincoln", "Machine learning"]
     if not pages:
         logger.info("No pages configured for INDEX_WIKI_PAGES; skipping indexing.")
         return
 
     def _worker():
         try:
+            total = 0
             for page in pages:
                 logger.info("Starting background Wikipedia indexing for %s", page)
-                num = index_wikipedia_pages(pages)
+                added = index_wikipedia_pages(page)
+                total += added
             # write marker on success
             try:
-                _CHROMA_INDEX_MARKER.write_text(f"indexed:{num}\n")
+                _CHROMA_INDEX_MARKER.write_text(f"indexed:{total}\n")
             except Exception:
                 logger.exception("Failed to write chroma index marker file")
-            logger.info("Background indexing finished: %d chunks added", num)
+            logger.info("Background indexing finished: %d chunks added", total)
         except Exception:
             logger.exception("Background Wikipedia indexing failed")
 
     thread = threading.Thread(target=_worker, daemon=True)
     thread.start()
 
+
+@tool
+def tavily_search(query: str) -> str:
+    """Search the web using Tavily"""
+    tavily_key = os.getenv("TAVILY_KEY")
+
+    if tavily_key is None:
+        raise RuntimeError("TAVILY_KEY not set")
+
+    tavily_client = TavilyClient(api_key=tavily_key)
+    response = tavily_client.search(query,search_depth='fast',max_results=3)
+    return response.text
 
 def start_background_indexing() -> None:
     try:
@@ -150,7 +165,7 @@ def _build_agent() -> Any:
     model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     llm = ChatGoogleGenerativeAI(model=model_name, temperature=0.2)
 
-    tools = [DuckDuckGoSearchRun(name="web_search")]
+    tools = [tavily_search]
 
     return create_agent(
         model=llm,
