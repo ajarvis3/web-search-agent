@@ -37,7 +37,8 @@ app.register_blueprint(routes)
 
 with app.app_context():
     try:
-        start_background_indexing()
+        if os.getenv("TAVILY_KEY", False):
+            start_background_indexing()
     except Exception:
         logger.exception("Failed to start background indexing from Flask app")
 
