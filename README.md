@@ -3,8 +3,8 @@
 A Flask-based web search agent powered by **Google Gemini** and **LangChain**.
 
 When a query arrives the Gemini LLM first considers whether it can answer from
-its own knowledge.  Only if the answer may be outdated or uncertain does the
-agent invoke the **DuckDuckGo** search tool to look up current information.
+its own knowledge. Only if the answer may be outdated or uncertain does the
+agent invoke the **Tavily** search tool to look up current information.
 
 ---
 
@@ -15,7 +15,7 @@ POST /search  ──►  Flask (app.py)  ──►  LangChain agent (agent.py)
                                              │
                                     ┌────────┴────────┐
                                     │                 │
-                              Gemini LLM        DuckDuckGo
+                              Gemini LLM        Tavily
                               (answers          search tool
                             from knowledge)   (live web search)
 ```

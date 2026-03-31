@@ -209,3 +209,6 @@ __marimo__/
 # Local Chroma persistence
 /chroma/
 
+# Local env overrides
+.env.local
+
