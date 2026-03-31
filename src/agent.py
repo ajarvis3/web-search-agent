@@ -27,13 +27,11 @@ load_dotenv()
 
 _SYSTEM_PROMPT = (
     "You are a helpful assistant that answers questions accurately. "
-    "You have access to a web_search tool. "
-    "First, consider whether you already know the answer from your training data. "
-    "If the answer is well-established and not time-sensitive, answer directly "
-    "without using the tool. "
+    "You have access to a tavily_search tool and retriever_tool tool. "
+    "First, consider whether you already know the answer from the retriever_tool. "
     "If the answer may be outdated, requires current information, or you are "
     "uncertain, use the web_search tool to look it up before answering."
-    "Clearly state in your response whether you used the tavily_search tool or not."
+    "Clearly state in your response which tool you used."
 )
 
 _CHROMA_DIR = Path(os.getenv("CHROMA_PERSIST_DIR", "chroma"))
@@ -137,6 +135,11 @@ def _maybe_background_index() -> None:
     thread = threading.Thread(target=_worker, daemon=True)
     thread.start()
 
+def start_background_indexing() -> None:
+    try:
+        _maybe_background_index()
+    except Exception:
+        logger.exception("Failed to start background indexing")
 
 @tool
 def tavily_search(query: str) -> str:
@@ -151,22 +154,29 @@ def tavily_search(query: str) -> str:
     logger.info(response)
     return response
 
-def start_background_indexing() -> None:
-    try:
-        _maybe_background_index()
-    except Exception:
-        logger.exception("Failed to start background indexing")
+@tool
+def retriever_tool(query: str) -> str:
+    """Search the web using retriever"""
+    vector_store = get_vector_store()
+    results = vector_store.similarity_search(query, k=3)
+    if not results:
+        return "No relevant documents found."
 
+    formatted = []
+    for i, doc in enumerate(results):
+        source = doc.metadata.get("source", "unknown")
+        formatted.append(f"[Doc {i + 1} from {source}]\n{doc.page_content}")
+    logger.info(formatted)
+    return "\n\n".join(formatted)
 
 def _build_agent() -> Any:
     """Construct and return a compiled LangChain agent graph."""
     # Initialize persistence on first agent build; retrieval wiring can be added incrementally.
-    get_vector_store()
 
     model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     llm = ChatGoogleGenerativeAI(model=model_name, temperature=0.2)
 
-    tools = [tavily_search]
+    tools = [tavily_search, retriever_tool]
 
     return create_agent(
         model=llm,
